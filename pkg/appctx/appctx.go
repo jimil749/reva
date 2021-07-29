@@ -20,9 +20,54 @@ package appctx
 
 import (
 	"context"
+	"fmt"
+	"unsafe"
 
 	"github.com/rs/zerolog"
 )
+
+type emptyCtx int
+
+type ValueCtx struct {
+	context.Context
+	key, val interface{}
+}
+
+type iface struct {
+	itab, data uintptr
+}
+
+func GetKeyValues(ctx context.Context) map[interface{}]interface{} {
+	m := make(map[interface{}]interface{})
+	getKeyValue(ctx, m)
+	return m
+}
+
+func PutKeyValues(m map[interface{}]interface{}) context.Context {
+	ctx := context.Background()
+	for key, value := range m {
+		ctx = context.WithValue(ctx, key, value)
+	}
+	return ctx
+}
+
+func getKeyValue(ctx context.Context, m map[interface{}]interface{}) {
+	ictx := *(*iface)(unsafe.Pointer(&ctx))
+	if ictx.data == 0 || int(*(*emptyCtx)(unsafe.Pointer(ictx.data))) == 0 {
+		return
+	}
+	valCtx := (*ValueCtx)(unsafe.Pointer(ictx.data))
+	if valCtx != nil && valCtx.key != nil {
+		m[valCtx.key] = valCtx.val
+	}
+	getKeyValue(valCtx.Context, m)
+}
+
+func PrintMapKeyValue(m map[interface{}]interface{}) {
+	for k, v := range m {
+		fmt.Printf("[key: %+v] [value: %+v]\n", k, v)
+	}
+}
 
 // DeletingSharedResource flags to a storage a shared resource is being deleted not by the owner.
 var DeletingSharedResource struct{}

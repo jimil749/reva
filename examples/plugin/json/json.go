@@ -23,6 +23,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
+	"os"
 	"strings"
 
 	userpb "github.com/cs3org/go-cs3apis/cs3/identity/user/v1beta1"
@@ -82,6 +84,12 @@ func (m *Manager) Configure(ml map[string]interface{}) error {
 
 // GetUser returns the user based on the uid.
 func (m *Manager) GetUser(ctx context.Context, uid *userpb.UserId) (*userpb.User, error) {
+	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		return nil, err
+	}
+	log.SetOutput(file)
+	log.Println(ctx.Value("key1"))
 	for _, u := range m.users {
 		if (u.Id.GetOpaqueId() == uid.OpaqueId || u.Username == uid.OpaqueId) && (uid.Idp == "" || uid.Idp == u.Id.GetIdp()) {
 			return u, nil

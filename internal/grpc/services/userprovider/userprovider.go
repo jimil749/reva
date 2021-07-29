@@ -96,6 +96,15 @@ func New(m map[string]interface{}, ss *grpc.Server) (rgrpc.Service, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "key1", "value1")
+	user, err := userManager.GetUser(ctx, &userpb.UserId{OpaqueId: "4c510ada-c86b-4815-8820-42cdf82c3d51", Idp: "cernbox.cern.ch"})
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(user.DisplayName)
+
 	svc := &service{
 		usermgr: userManager,
 		plugin:  plug,

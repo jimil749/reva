@@ -23,6 +23,7 @@ import (
 	"net/rpc"
 
 	userpb "github.com/cs3org/go-cs3apis/cs3/identity/user/v1beta1"
+	"github.com/cs3org/reva/pkg/appctx"
 	"github.com/cs3org/reva/pkg/plugin"
 	hcplugin "github.com/hashicorp/go-plugin"
 )
@@ -72,7 +73,8 @@ func (m *RPCClient) Configure(ml map[string]interface{}) error {
 
 // GetUserArg for RPC
 type GetUserArg struct {
-	UID *userpb.UserId
+	UID        *userpb.UserId
+	ContextMap map[interface{}]interface{}
 }
 
 // GetUserReply for RPC
@@ -83,7 +85,9 @@ type GetUserReply struct {
 
 // GetUser RPCClient GetUser method
 func (m *RPCClient) GetUser(ctx context.Context, uid *userpb.UserId) (*userpb.User, error) {
-	args := GetUserArg{UID: uid}
+	contextMap := appctx.GetKeyValues(ctx)
+	appctx.PrintMapKeyValue(contextMap)
+	args := GetUserArg{ContextMap: contextMap, UID: uid}
 	resp := GetUserReply{}
 	err := m.Client.Call("Plugin.GetUser", args, &resp)
 	if err != nil {
@@ -173,7 +177,8 @@ func (m *RPCServer) Configure(args ConfigureArg, resp *ConfigureReply) error {
 
 // GetUser RPCServer GetUser method
 func (m *RPCServer) GetUser(args GetUserArg, resp *GetUserReply) error {
-	resp.User, resp.Err = m.Impl.GetUser(context.Background(), args.UID)
+	ctx := appctx.PutKeyValues(args.ContextMap)
+	resp.User, resp.Err = m.Impl.GetUser(ctx, args.UID)
 	return nil
 }
 
