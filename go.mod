@@ -35,7 +35,7 @@ require (
 	github.com/mitchellh/copystructure v1.0.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/onsi/ginkgo v1.16.4
-	github.com/onsi/gomega v1.13.0
+	github.com/onsi/gomega v1.14.0
 	github.com/ory/fosite v0.40.2
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/xattr v0.4.3
